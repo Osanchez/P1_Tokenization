@@ -1,3 +1,3 @@
 # P1_Tokenization
 
-Reads a file, formats text, removes stop words, apllies port and stem algorythms. These are fundamental principles applied to search engines 
+Reads a file, formats text, removes stop words, ap[lies port and stem algorithms. These are fundamental principles applied to search engines 
