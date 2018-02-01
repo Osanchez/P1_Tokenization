@@ -1,3 +1,5 @@
+package src;
+
 public class main {
     public static void main(String[] args) {
         tokenization();
@@ -5,8 +7,8 @@ public class main {
 
     private static void tokenization() {
         Tokenize tokenize = new Tokenize();
-        tokenize.tokenization("src/files/tokenization-input-part-A.txt");
-        tokenize.stopwordRemoval("src/files/stopwords.txt");
+        tokenize.tokenization("files/tokenization-input-part-A.txt");
+        tokenize.stopwordRemoval("files/stopwords.txt");
         tokenize.porterStemming();
     }
 

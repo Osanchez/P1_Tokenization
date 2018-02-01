@@ -1,3 +1,5 @@
+package src;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -233,7 +235,7 @@ public class Tokenize {
                 String remaining = token.substring(0, length - 3);
                 if(length >= 5) {
                     String checkPreceding = remaining.substring(0 , length - 3);
-                    boolean hasPattern = checkPreceding.matches("[bcdfghjklmnpqrstvwxz]+[aeiou]");
+                    boolean hasPattern = checkPreceding.matches(".*[aeiou][bcdfghjklmnpqrstvwxyz]+");
                     System.out.println("Follows Rules: " + hasPattern);
                     if(hasPattern) {
                         String newToken = token.substring(0, length - 3) + "ee";
@@ -251,8 +253,8 @@ public class Tokenize {
                 String remaining = token.substring(0, length - 5);
                 if(length >= 7) {
                     String checkPreceding = remaining.substring(length - 7 , length - 5);
-                    String[] precedingCharacters = checkPreceding.split("");
-                    if(!vowels.contains(precedingCharacters[0]) && vowels.contains(precedingCharacters[1])) {
+                    boolean hasPattern = checkPreceding.matches(".*[aeiou][bcdfghjklmnpqrstvwxyz]+");
+                    if(hasPattern) {
                         String newToken = token.substring(0, length - 5) + "ee";
                         System.out.println("new token --> " + newToken);
                         updated_tokens[x] = newToken;
