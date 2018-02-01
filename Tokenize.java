@@ -226,8 +226,7 @@ public class Tokenize {
 
         //- Replace eed, eedly by ee if it is in the part of the word after the first non vowel following a vowel (e.g., agreed→agree, feed→feed).
         x = 0;
-        for(String token : tokens) {
-            int length = token.length();
+        for(String token : tokens) { int length = token.length();
             if (token.endsWith("eed")) {
                 System.out.println("\n" + token);
                 System.out.println("Ends with 'eed' --> " + token);
