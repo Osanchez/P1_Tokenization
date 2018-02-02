@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+
 public class Tokenize {
 
     private List<String> tokens;
@@ -15,6 +16,27 @@ public class Tokenize {
         stop_words = new ArrayList();
         tokens = new ArrayList();
     }
+
+    public static boolean hasVowel(String check) {
+        ArrayList<String> vowels = new ArrayList<>();
+        vowels.add("a");
+        vowels.add("e");
+        vowels.add("i");
+        vowels.add("o");
+        vowels.add("u");
+
+        boolean hasVowel = false;
+
+        String[] listCheck = check.split("");
+
+        for(String character : listCheck) {
+            if(vowels.contains(character)) {
+                return true;
+            }
+        }
+        return hasVowel;
+    }
+
 
     public void tokenization(String fileName) {
         String update_raw_text = "";
@@ -165,6 +187,7 @@ public class Tokenize {
 
         //Delete s if the preceding word part contains a vowel not immediately before the s (e.g., gaps→gap but gas→gas).
         //If suffix is us or ss do nothing (e.g., stress→stress). *This is handled here as well using the vowel and double s array*
+        //TODO: check length of string before deleting s
         x = 0; //resets the counter
         for (String token : tokens) {
             boolean hasVowel = false;
@@ -223,15 +246,11 @@ public class Tokenize {
 
         //------------------------ Part 1b ------------------------
         //TODO: THIS SECTION
-        String[] delete_suffies = {"ed", "edly", "ing", "ingly"};
-        String[] add_suffixes = {"at", "bl", "iz"};
 
         //- Replace eed, eedly by ee if it is in the part of the word after the first non vowel following a vowel (e.g., agreed→agree, feed→feed).
         x = 0;
         for(String token : tokens) { int length = token.length();
             if (token.endsWith("eed")) {
-                System.out.println("\n" + token);
-                System.out.println("Ends with 'eed' --> " + token);
                 String remaining = token.substring(0, length - 3);
                 if(length >= 5) {
                     String checkPreceding = remaining.substring(0 , length - 3);
@@ -239,27 +258,21 @@ public class Tokenize {
                     System.out.println("Follows Rules: " + hasPattern);
                     if(hasPattern) {
                         String newToken = token.substring(0, length - 3) + "ee";
-                        System.out.println("new token --> " + newToken);
                         updated_tokens[x] = newToken;
                     } else {
-                        System.out.println("new token unchanged --> " + token);
                         updated_tokens[x] = token;
                     }
                 }
             }
             else if(token.endsWith("eedly")) {
-                System.out.println("\n" + token);
-                System.out.println("Ends with 'eedly' --> " + token);
                 String remaining = token.substring(0, length - 5);
                 if(length >= 7) {
                     String checkPreceding = remaining.substring(length - 7 , length - 5);
                     boolean hasPattern = checkPreceding.matches(".*[aeiou][bcdfghjklmnpqrstvwxyz]+");
                     if(hasPattern) {
                         String newToken = token.substring(0, length - 5) + "ee";
-                        System.out.println("new token --> " + newToken);
                         updated_tokens[x] = newToken;
                     } else {
-                        System.out.println("new token unchanged --> " + token);
                         updated_tokens[x] = token;
                     }
                 }
@@ -271,7 +284,67 @@ public class Tokenize {
         for (String token : updated_tokens) {
             tokens.add(token);
         }
+
         System.out.println("Updated Tokens 4: " + tokens);
+
+        // - Delete ed, edly, ing, ingly if the preceding word part contains a vowel, and then if the word ends in at, bl, or iz add e (e.g., fished → fish, pirating → pirate),
+        //or if the word ends with a double letter that is not ll, ss, or zz, remove the last letter (e.g., falling→fall, dripping→drip), or if the word is short, add e (e.g., hoping→hope).
+        x = 0;
+        for(String token : tokens) {
+            int length = token.length();
+            if(token.endsWith("ed")) {
+                String precedingWord = token.substring(0, length - 2);
+                boolean hasVowel = hasVowel(precedingWord);
+                if(hasVowel){
+                    String[] lastTwoChars = token.substring(precedingWord.length() - 2, precedingWord.length()).split("");
+                    if(precedingWord.endsWith("at") | precedingWord.endsWith("bl") | precedingWord.endsWith("iz")) {
+                        String newToken = precedingWord + "e";
+                        updated_tokens[x] = newToken;
+                    }
+                    else if(lastTwoChars[0].equals(lastTwoChars[1])) { //checks last to characters
+                        if(lastTwoChars[0].equals("l") || lastTwoChars[0].equals("s") || lastTwoChars[0].equals("z")) {
+                            String newToken = precedingWord.substring(0, precedingWord.length() - 1);
+                            updated_tokens[x] = newToken;
+                        }
+                    }
+                    else if(precedingWord.length() < 4) { //short word
+                        String newToken = precedingWord + "e";
+                        updated_tokens[x] = newToken;
+                    }
+                    else {
+                        updated_tokens[x] = token;
+                    }
+                }
+            }
+            else if(token.endsWith("edly")){
+                String precedingWord = token.substring(0, length - 4);
+                boolean hasVowel = hasVowel(precedingWord);
+                if(hasVowel){
+                }
+            }
+            else if(token.endsWith("ing")){
+                String precedingWord = token.substring(0, length - 3);
+                boolean hasVowel = hasVowel(precedingWord);
+                if(hasVowel){
+                }
+            }
+            else if(token.endsWith("ingly")){
+                String precedingWord = token.substring(0, length - 5);
+                boolean hasVowel = hasVowel(precedingWord);
+                if(hasVowel){
+                }
+            }
+            else {
+                updated_tokens[x] = token;
+            }
+            x++;
+        }
+        //update tokens
+        tokens.clear();
+        for (String token : updated_tokens) {
+            tokens.add(token);
+        }
+        System.out.println("Updated Tokens 5: " + tokens);
     }
 }
 
