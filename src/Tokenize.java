@@ -1,16 +1,14 @@
 package src;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 
 public class Tokenize {
 
     private List<String> tokens;
     private List<String> stop_words;
+    private Map<String, Integer> frequencies = new HashMap<>();
 
     public Tokenize() {
         stop_words = new ArrayList();
@@ -29,8 +27,8 @@ public class Tokenize {
 
         String[] listCheck = check.split("");
 
-        for(String character : listCheck) {
-            if(vowels.contains(character)) {
+        for (String character : listCheck) {
+            if (vowels.contains(character)) {
                 return true;
             }
         }
@@ -151,17 +149,8 @@ public class Tokenize {
         System.out.println("---------- Porter Stemming ----------");
 
         //------------------------ Part 1a ------------------------
-        //TODO: might not be able to include s for part 1b
-        List<String> vowels = new ArrayList<>();
-        vowels.add("a");
-        vowels.add("e");
-        vowels.add("i");
-        vowels.add("o");
-        vowels.add("u");
-
         String[] updated_tokens = new String[tokens.size()];
         int x = 0;
-
         //- Replace sses by ss (e.g., stresses→stress).
         for (String token : tokens) {
             if (token.length() >= 4) {
@@ -186,26 +175,18 @@ public class Tokenize {
 
 
         //Delete s if the preceding word part contains a vowel not immediately before the s (e.g., gaps→gap but gas→gas).
-        //If suffix is us or ss do nothing (e.g., stress→stress). *This is handled here as well using the vowel and double s array*
-        //TODO: check length of string before deleting s
         x = 0; //resets the counter
         for (String token : tokens) {
-            boolean hasVowel = false;
-            if (token.substring(token.length() - 1, token.length()).equals("s")) { //checks the last character in the string token
-                String substring = token.length() > 2 ? token.substring(token.length() - 2) : token; //gets the suffix (2 characters)
-                //checks to see if preceding character is a vowel
-                String[] split_substring = substring.split("");
-                for (String vowel : vowels) {
-                    if (split_substring[0].equals(vowel)) {
-                        hasVowel = true;
-                        break;
+            int token_length = token.length();
+            if(token_length >= 3) {
+                if (token.substring(token.length() - 1, token.length()).equals("s")) { //checks the last character in the string token
+                    String checkPreceding = token.substring(0, token_length - 2);
+                    String suffix = token.substring(token_length - 2, token_length);
+                    boolean containsVowel = hasVowel(checkPreceding);
+                    if (containsVowel && !suffix.equals("ss") && !suffix.equals("us")) {
+                        String updated_token = token.substring(0, token_length - 1);
+                        updated_tokens[x] = updated_token;
                     }
-                }
-
-                if (hasVowel == false) {
-                    updated_tokens[x] = token.substring(0, token.length() - 1); //removes last character, which is the s
-                } else {
-                    updated_tokens[x] = token;
                 }
             }
             x++;
@@ -249,27 +230,27 @@ public class Tokenize {
 
         //- Replace eed, eedly by ee if it is in the part of the word after the first non vowel following a vowel (e.g., agreed→agree, feed→feed).
         x = 0;
-        for(String token : tokens) { int length = token.length();
+        for (String token : tokens) {
+            int length = token.length();
             if (token.endsWith("eed")) {
                 String remaining = token.substring(0, length - 3);
-                if(length >= 5) {
-                    String checkPreceding = remaining.substring(0 , length - 3);
+                if (length >= 5) {
+                    String checkPreceding = remaining.substring(0, length - 3);
                     boolean hasPattern = checkPreceding.matches(".*[aeiou][bcdfghjklmnpqrstvwxyz]+");
                     System.out.println("Follows Rules: " + hasPattern);
-                    if(hasPattern) {
+                    if (hasPattern) {
                         String newToken = token.substring(0, length - 3) + "ee";
                         updated_tokens[x] = newToken;
                     } else {
                         updated_tokens[x] = token;
                     }
                 }
-            }
-            else if(token.endsWith("eedly")) {
+            } else if (token.endsWith("eedly")) {
                 String remaining = token.substring(0, length - 5);
-                if(length >= 7) {
-                    String checkPreceding = remaining.substring(length - 7 , length - 5);
+                if (length >= 7) {
+                    String checkPreceding = remaining.substring(length - 7, length - 5);
                     boolean hasPattern = checkPreceding.matches(".*[aeiou][bcdfghjklmnpqrstvwxyz]+");
-                    if(hasPattern) {
+                    if (hasPattern) {
                         String newToken = token.substring(0, length - 5) + "ee";
                         updated_tokens[x] = newToken;
                     } else {
@@ -290,52 +271,60 @@ public class Tokenize {
         // - Delete ed, edly, ing, ingly if the preceding word part contains a vowel, and then if the word ends in at, bl, or iz add e (e.g., fished → fish, pirating → pirate),
         //or if the word ends with a double letter that is not ll, ss, or zz, remove the last letter (e.g., falling→fall, dripping→drip), or if the word is short, add e (e.g., hoping→hope).
         x = 0;
-        for(String token : tokens) {
+        for (String token : tokens) {
             int length = token.length();
-            if(token.endsWith("ed")) {
-                String precedingWord = token.substring(0, length - 2);
-                boolean hasVowel = hasVowel(precedingWord);
-                if(hasVowel){
-                    String[] lastTwoChars = token.substring(precedingWord.length() - 2, precedingWord.length()).split("");
-                    if(precedingWord.endsWith("at") | precedingWord.endsWith("bl") | precedingWord.endsWith("iz")) {
-                        String newToken = precedingWord + "e";
-                        updated_tokens[x] = newToken;
-                    }
-                    else if(lastTwoChars[0].equals(lastTwoChars[1])) { //checks last to characters
-                        if(lastTwoChars[0].equals("l") || lastTwoChars[0].equals("s") || lastTwoChars[0].equals("z")) {
-                            String newToken = precedingWord.substring(0, precedingWord.length() - 1);
-                            updated_tokens[x] = newToken;
-                        }
-                    }
-                    else if(precedingWord.length() < 4) { //short word
-                        String newToken = precedingWord + "e";
-                        updated_tokens[x] = newToken;
-                    }
-                    else {
-                        updated_tokens[x] = token;
-                    }
+            String double_letters = "lsz";
+
+            if (token.endsWith("ed") && hasVowel(token.substring(0, length - 2))) { //checks for vowel in preceding word part
+                String updated_token = token.substring(0, length - 2); //remove suffix
+                String[] last_letters = updated_token.substring(updated_token.length() - 2, updated_token.length()).split(""); //gets last 2 letters up updated token
+                if (updated_token.endsWith("at") || updated_token.endsWith("bl") || updated_token.endsWith("iz")) { //adds e if contains given suffixes
+                    updated_token += "e";
+                } else if (last_letters[0].equals(last_letters[1]) && !double_letters.contains(last_letters[0])) { //if last 2 letters are the same and not l,s, or z removes 1 letter
+                    updated_token = updated_token.substring(0, updated_token.length() - 1); //remove a letter
+                } else if (updated_token.length() < 4) { //if short add e
+                    updated_token += "e";
                 }
+                updated_tokens[x] = updated_token;
             }
-            else if(token.endsWith("edly")){
-                String precedingWord = token.substring(0, length - 4);
-                boolean hasVowel = hasVowel(precedingWord);
-                if(hasVowel){
+
+            else if (token.endsWith("edly") && hasVowel(token.substring(0, length - 4))) { //checks for vowel in preceding word part
+                String updated_token = token.substring(0, length - 4); //remove suffix
+                String[] last_letters = updated_token.substring(updated_token.length() - 2, updated_token.length()).split(""); //gets last 2 letters up updated token
+                if (updated_token.endsWith("at") || updated_token.endsWith("bl") || updated_token.endsWith("iz")) { //adds e if contains given suffixes
+                    updated_token += "e";
+                } else if (last_letters[0].equals(last_letters[1]) && !double_letters.contains(last_letters[0])) { //if last 2 letters are the same and not l,s, or z removes 1 letter
+                    updated_token = updated_token.substring(0, updated_token.length() - 1); //remove a letter
+                } else if (updated_token.length() < 4) { //if short add e
+                    updated_token += "e";
                 }
+                updated_tokens[x] = updated_token;
             }
-            else if(token.endsWith("ing")){
-                String precedingWord = token.substring(0, length - 3);
-                boolean hasVowel = hasVowel(precedingWord);
-                if(hasVowel){
+
+            else if (token.endsWith("ing") && hasVowel(token.substring(0, length - 3))) { //checks for vowel in preceding word part
+                String updated_token = token.substring(0, length - 3); //remove suffix
+                String[] last_letters = updated_token.substring(updated_token.length() - 2, updated_token.length()).split(""); //gets last 2 letters up updated token
+                if (updated_token.endsWith("at") || updated_token.endsWith("bl") || updated_token.endsWith("iz")) { //adds e if contains given suffixes
+                    updated_token += "e";
+                } else if (last_letters[0].equals(last_letters[1]) && !double_letters.contains(last_letters[0])) { //if last 2 letters are the same and not l,s, or z removes 1 letter
+                    updated_token = updated_token.substring(0, updated_token.length() - 1); //remove a letter
+                } else if (updated_token.length() < 4) { //if short add e
+                    updated_token += "e";
                 }
+                updated_tokens[x] = updated_token;
             }
-            else if(token.endsWith("ingly")){
-                String precedingWord = token.substring(0, length - 5);
-                boolean hasVowel = hasVowel(precedingWord);
-                if(hasVowel){
+
+            else if (token.endsWith("ingly") && hasVowel(token.substring(0, length - 4))) { //checks for vowel in preceding word part
+                String updated_token = token.substring(0, length - 4); //remove suffix
+                String[] last_letters = updated_token.substring(updated_token.length() - 2, updated_token.length()).split(""); //gets last 2 letters up updated token
+                if (updated_token.endsWith("at") || updated_token.endsWith("bl") || updated_token.endsWith("iz")) { //adds e if contains given suffixes
+                    updated_token += "e";
+                } else if (last_letters[0].equals(last_letters[1]) && !double_letters.contains(last_letters[0])) { //if last 2 letters are the same and not l,s, or z removes 1 letter
+                    updated_token = updated_token.substring(0, updated_token.length() - 1); //remove a letter
+                } else if (updated_token.length() < 4) { //if short add e
+                    updated_token += "e";
                 }
-            }
-            else {
-                updated_tokens[x] = token;
+                updated_tokens[x] = updated_token;
             }
             x++;
         }
@@ -345,6 +334,80 @@ public class Tokenize {
             tokens.add(token);
         }
         System.out.println("Updated Tokens 5: " + tokens);
+    }
+
+    public void exportToFile(String fileName) {
+        BufferedWriter writer = null;
+        FileWriter fileWriter = null;
+
+        try {
+            fileWriter = new FileWriter(fileName);
+            writer = new BufferedWriter(fileWriter);
+
+            for(String token : tokens) {
+                writer.write(token);
+                writer.newLine();
+            }
+            System.out.println("Wrote tokens to file successfully...");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if(writer != null) {
+                    writer.close();
+                }
+                if(fileWriter != null) {
+                    fileWriter.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    public void frequencyExportToFile(String fileName) {
+
+        for(String token : tokens) {
+            if(frequencies.containsKey(token)) {
+                int count = frequencies.get(token);
+                frequencies.put(token, count + 1);
+            } else {
+                frequencies.put(token, 0);
+            }
+        }
+
+        BufferedWriter writer = null;
+        FileWriter fileWriter = null;
+
+        try {
+            fileWriter = new FileWriter(fileName);
+            writer = new BufferedWriter(fileWriter);
+
+            Iterator<String> itr = frequencies.keySet().iterator();
+            while(itr.hasNext()) {
+                writer.write(itr.next());
+                writer.newLine();
+            }
+
+            System.out.println("Wrote tokens to file successfully...");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if(writer != null) {
+                    writer.close();
+                }
+                if(fileWriter != null) {
+                    fileWriter.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }
 

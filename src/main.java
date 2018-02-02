@@ -6,10 +6,17 @@ public class main {
     }
 
     private static void tokenization() {
-        Tokenize tokenize = new Tokenize();
-        tokenize.tokenization("files/tokenization-input-part-A.txt");
-        tokenize.stopwordRemoval("files/stopwords.txt");
-        tokenize.porterStemming();
+        Tokenize tokenizeA = new Tokenize();
+        tokenizeA.tokenization("files/tokenization-input-part-A.txt");
+        tokenizeA.stopwordRemoval("files/stopwords.txt");
+        tokenizeA.porterStemming();
+        tokenizeA.exportToFile("tokenized.txt");
+
+        Tokenize tokenizeB = new Tokenize();
+        tokenizeB.tokenization("files/tokenization-input-part-B.txt");
+        tokenizeB.stopwordRemoval("files/stopwords.txt");
+        tokenizeB.porterStemming();
+        tokenizeB.frequencyExportToFile("terms.txt");
     }
 
 }
