@@ -374,9 +374,14 @@ public class Tokenize {
                 int count = frequencies.get(token);
                 frequencies.put(token, count + 1);
             } else {
-                frequencies.put(token, 0);
+                frequencies.put(token, 1);
             }
         }
+
+        Object[] sorted = frequencies.entrySet().toArray();
+        Arrays.sort(sorted, (o1, o2) -> ((Map.Entry<String, Integer>) o2).getValue()
+                .compareTo(((Map.Entry<String, Integer>) o1).getValue()));
+
 
         BufferedWriter writer = null;
         FileWriter fileWriter = null;
@@ -385,13 +390,17 @@ public class Tokenize {
             fileWriter = new FileWriter(fileName);
             writer = new BufferedWriter(fileWriter);
 
-            Iterator<String> itr = frequencies.keySet().iterator();
-            while(itr.hasNext()) {
-                writer.write(itr.next());
+            int x = 1;
+            for(Object e : sorted) {
+                if(x == 200) { //filthy way of only printing first 200 terms
+                    break;
+                }
+                writer.write(((Map.Entry<String, Integer>) e).getKey() + " : " + ((Map.Entry<String, Integer>) e).getValue());
                 writer.newLine();
+                x++;
             }
 
-            System.out.println("Wrote tokens to file successfully...");
+            System.out.println("Wrote terms to file successfully...");
 
         } catch (IOException e) {
             e.printStackTrace();
