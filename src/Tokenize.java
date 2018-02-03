@@ -369,13 +369,21 @@ public class Tokenize {
 
     public void frequencyExportToFile(String fileName) {
 
+        HashMap<Integer, Integer> vocabGrowth = new HashMap<>();
+        int wordsInCollection = 0;
+        int wordsInVocabulary = 0;
+
         for(String token : tokens) {
             if(frequencies.containsKey(token)) {
                 int count = frequencies.get(token);
                 frequencies.put(token, count + 1);
+                wordsInCollection += 1;
             } else {
                 frequencies.put(token, 1);
+                wordsInCollection += 1;
+                wordsInVocabulary += 1;
             }
+            vocabGrowth.put(wordsInCollection,wordsInVocabulary);
         }
 
         Object[] sorted = frequencies.entrySet().toArray();
@@ -398,6 +406,14 @@ public class Tokenize {
                 writer.write(((Map.Entry<String, Integer>) e).getKey() + " : " + ((Map.Entry<String, Integer>) e).getValue());
                 writer.newLine();
                 x++;
+            }
+
+            fileWriter = new FileWriter("vocabGrowthPairs.txt");
+            writer = new BufferedWriter(fileWriter);
+
+            for (Object pair : vocabGrowth.entrySet().toArray()) {
+                    writer.write(String.valueOf(pair));
+                    writer.newLine();
             }
 
             System.out.println("Wrote terms to file successfully...");
